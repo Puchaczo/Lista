@@ -192,7 +192,7 @@ void list_remove_element_byindex(list_head* list, unsigned int position)
             //Znajdujemy poprzednik usuwanego pliku (dlatego -1)
             list_element* temp_pointer = list_return_element_byindex(list, position-1);
          
-            if((temp_pointer) != NULL)
+            if(((temp_pointer) != NULL)&&((temp_pointer->next) != NULL))
             {
                 list_element*  temp_pointer_to_delete = temp_pointer->next;
             
@@ -303,7 +303,19 @@ int main()
     list_add_element_byindex(&mylist, 3, 2);
     list_info_print(&mylist);   
     
-   list_remove_element_byindex(&mylist, 4);
+    list_remove_element_byindex(&mylist, 0);
+    list_info_print(&mylist); 
     
+        list_remove_element_byindex(&mylist, 0);
+    list_info_print(&mylist); 
+    
+        list_remove_element_byindex(&mylist, 0);
+    list_info_print(&mylist); 
+    
+        list_remove_element_byindex(&mylist, 0);
+    list_info_print(&mylist); 
+    
+        list_remove_element_byindex(&mylist, 0);
+    list_info_print(&mylist); 
     return 0;
 }
