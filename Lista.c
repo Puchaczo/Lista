@@ -40,9 +40,12 @@ void list_remove_element_by_index(list_head* list, unsigned int position);
  
 //zwrócenie długosci listy
 int list_count_elements(list_head* list);
- 
-//funkcje wyswietlania/pomocnicze
+//zwrócenie wskażnika na n-ty element listy
+
 list_element* list_return_element_byindex(list_head* list, unsigned int position);
+//funkcje wyswietlania/pomocnicze
+void list_print_element_byindex(list_head* list, unsigned int position);
+
 
 void list_print_all_elements(list_head* list);
 void list_info_print(list_head* list);  //wypisuje elementy oraz rozmiar jako ostatnią liczbę
@@ -51,6 +54,10 @@ void list_element_set_free(list_element* element); //zeruje dane elementu usuwan
  
 /******************************************************************************
 FUNKCJE KOD
+*******************************************************************************/
+
+/******************************************************************************
+OPERACJE NA POCZĄTKU LISTY
 *******************************************************************************/
 
 void list_add_element_as_first(list_head* list, list_element_data_type data)
@@ -63,7 +70,7 @@ void list_add_element_as_first(list_head* list, list_element_data_type data)
     (*list) = new_element;
 
 }
-
+/*************************************************************************************/
 
 void list_remove_element_first(list_head* list)
 {
@@ -81,6 +88,9 @@ void list_remove_element_first(list_head* list)
     }   
 }
 
+/******************************************************************************
+OPERACJE NA KOŃCU LISTY
+*******************************************************************************/
 
 void list_add_element_as_last(list_head* list, list_element_data_type data)
 {
@@ -106,12 +116,13 @@ void list_add_element_as_last(list_head* list, list_element_data_type data)
         temp_pointer->next = new_element;
     }
 }
-
+/*************************************************************************************/
 
 void list_remove_element_last(list_head* list)
 {
     if((*list) != NULL) //usuwamy tylko gdy lista ma elementy
     {
+        //lista jednoelementowa nie ma przedostatniego elementu, przypadek specjalny
         if(((*list)->next) == NULL)
         {
             free(*list);
@@ -120,6 +131,7 @@ void list_remove_element_last(list_head* list)
         else
         {
             list_element* temp_pointer = (*list);
+            
             //szukamy przedostatniego elementu
             while((temp_pointer->next->next) != NULL)
             {
@@ -134,6 +146,104 @@ void list_remove_element_last(list_head* list)
         printf("nie ma co usuwać\n\r");
     }   
 }
+
+/******************************************************************************
+OPERACJE NA INDEKSIE LISTY
+Indeksacja elementów tak jak w tablicy: 0:[rozmiar-1]
+*******************************************************************************/
+
+void list_add_element_byindex(list_head* list, list_element_data_type data, int position)
+{
+
+    if(position < 0)
+    {
+        list_add_element_as_first(list, data);
+    }
+    else
+    {
+         list_element* temp_pointer = list_return_element_byindex(list, position);
+         
+         if((temp_pointer) != NULL)
+         {
+             
+            list_element*  new_element = (list_element*) malloc(sizeof(list_element));
+            new_element->data = data;
+            
+            new_element->next = temp_pointer->next;
+            temp_pointer->next = new_element;
+         }
+         
+         else
+             printf("element listy o indeksie %d nie istnieje \n\r", position);
+
+    }
+}
+
+void list_remove_element_byindex(list_head* list, unsigned int position)
+{
+    if((*list) != NULL) //usuwamy tylko gdy lista ma elementy
+    {
+       if(position == 0) /*pierwszy element nie ma poprzedniego, przypadek pozycji 0 jest traktowany specjalnie, tak jak usuniecie elementu z poczatku listy*/
+        {
+                list_remove_element_first(list);
+        }
+        else
+        {
+            //Znajdujemy poprzednik usuwanego pliku (dlatego -1)
+            list_element* temp_pointer = list_return_element_byindex(list, position-1);
+         
+            if((temp_pointer) != NULL)
+            {
+                list_element*  temp_pointer_to_delete = temp_pointer->next;
+            
+                temp_pointer->next = temp_pointer_to_delete->next;
+                free(temp_pointer_to_delete);
+            }
+         
+         else
+             printf("element listy o indeksie %d nie istnieje \n\r", position);
+        }
+    }
+    else
+    {
+        printf("nie ma co usuwać\n\r");
+    }   
+}
+
+list_element* list_return_element_byindex(list_head* list, unsigned int position)
+{
+    unsigned int count = 0;
+    list_element* temp_pointer = (*list);
+   
+   
+    while((temp_pointer != NULL)&&(count < position)) //koniec petli w przypadku znalezienia elementu lub konca listy
+    {
+        count++;
+        temp_pointer = temp_pointer->next;
+    }
+   
+    return temp_pointer;
+}
+
+void list_print_element_byindex(list_head* list, unsigned int position)
+{
+    unsigned int count = 0;
+    list_element* temp_pointer = (*list);
+   
+   
+    while((temp_pointer != NULL)&&(count < position)) //koniec petli w przypadku znalezienia elementu lub konca listy
+    {
+        count++;
+        temp_pointer = temp_pointer->next;
+    }
+   
+   if(temp_pointer != NULL)
+    printf("element listy na pozycji %d ma wartość: %d \n\r",position ,temp_pointer->data);
+   else 
+    printf("element listy o indeksie %d nie istnieje, rozmiar listy: %d  \n\r",position , count);
+
+}
+
 
 
 
@@ -180,36 +290,20 @@ int main()
 {
     
     list_head mylist = NULL;
-    list_info_print(&mylist);
-    list_add_element_as_last(&mylist, 5);
-    list_info_print(&mylist);
-    list_add_element_as_first(&mylist, 3);
-    list_info_print(&mylist);
-    list_add_element_as_last(&mylist, 4);
-    list_info_print(&mylist);
-    list_remove_element_first(&mylist);
-    list_info_print(&mylist);
-    list_remove_element_first(&mylist);
-    list_info_print(&mylist);
-    list_remove_element_first(&mylist);
-    list_info_print(&mylist);
-    list_remove_element_first(&mylist);
+  
+    list_add_element_byindex(&mylist, 1, -1);
     list_info_print(&mylist);
     
-    list_add_element_as_last(&mylist, 5);
+    list_add_element_byindex(&mylist, 2, 0);
     list_info_print(&mylist);
-    list_add_element_as_first(&mylist, 3);
-    list_info_print(&mylist);
-    list_add_element_as_last(&mylist, 4);
-    list_info_print(&mylist);
-    list_remove_element_last(&mylist);
-    list_info_print(&mylist);
-    list_remove_element_last(&mylist);
-    list_info_print(&mylist);
-    list_remove_element_last(&mylist);
-    list_info_print(&mylist);
-    list_remove_element_last(&mylist);
-    list_info_print(&mylist);
+    
+    list_add_element_byindex(&mylist, 8, 1);
+    list_info_print(&mylist);   
+    
+    list_add_element_byindex(&mylist, 3, 2);
+    list_info_print(&mylist);   
+    
+   list_remove_element_byindex(&mylist, 4);
     
     return 0;
 }
