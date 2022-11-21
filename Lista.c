@@ -373,7 +373,7 @@ void list_swap_elements(list_head* list, unsigned int element_pos)
 }
 
 ************************************************************************************/
-
+//Funkcja zamiany zwraca wskaźnik na nowy pierwszy element
 list_element* swap_list_elements(list_element* element1, list_element* element2)
 {
            element1->next = element2->next;
