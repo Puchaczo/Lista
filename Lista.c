@@ -61,7 +61,7 @@ list_element* list_return_element_ptr_byindex(list_head* list, unsigned int posi
 //zwrócenie wartości ntego elementu listy
 list_element_data_type list_return_element_byindex(list_head* list, unsigned int position);
 
-void list_connect_elements(list_head* list, unsigned int position, list_element* element);
+//void list_connect_elements(list_head* list, unsigned int position, list_element* element);
 
 //-----------------------------------------------------------------------------------------------------
 //funkcje wyswietlania/pomocnicze
