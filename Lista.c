@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <time.h>
  
 /******************************************************************************
 TYPEDEF/STRUKTURY
@@ -28,30 +29,52 @@ FUNKCJE PROTOTYPY
 *******************************************************************************/
  
 //funkcje dodawania/usuwania elementów listy
+//----------------------------------------------------------------------------------------------------
 void list_add_element_as_first(list_head* list, list_element_data_type data);
 void list_remove_element_first(list_head* list);
  
 void list_add_element_as_last(list_head* list, list_element_data_type data);
 void list_remove_element_last(list_head* list);
- 
-//dodawanie elementów wykonuje się przed danym indeksem
-void list_add_element_by_index(list_head* list, list_element_data_type data, unsigned int position);
+
+//Indeksacja elementów tak jak w tablicach: 0:[rozmiar-1] 
+//dodawanie elementów wykonuje się za danym indeksem
+//pozycja na minusie np. (-1) skutkuje wpisaniem elementu na poczatek listy
+void list_add_element_by_index(list_head* list, list_element_data_type data, int position);
 void list_remove_element_by_index(list_head* list, unsigned int position);
- 
+
+//-----------------------------------------------------------------------------------------------------
+//Operacje zmiany kolejności elementów listy
+//-----------------------------------------------------------------------------------------------------
+void list_bubblesort(list_head* list);
+
+//void list_switch_elements(list_head* list, unsigned int element1_pos, unsigned int element2_pos);
+
+
+
+//-----------------------------------------------------------------------------------------------------
+//Inne operacje na listach
+//----------------------------------------------------------------------------------------------------- 
 //zwrócenie długosci listy
-int list_count_elements(list_head* list);
+unsigned int list_count_elements(list_head* list);
 //zwrócenie wskażnika na n-ty element listy
+list_element* list_return_element_ptr_byindex(list_head* list, unsigned int position);
+//zwrócenie wartości ntego elementu listy
+list_element_data_type list_return_element_byindex(list_head* list, unsigned int position);
 
-list_element* list_return_element_byindex(list_head* list, unsigned int position);
+void list_connect_elements(list_head* list, unsigned int position, list_element* element);
+
+//-----------------------------------------------------------------------------------------------------
 //funkcje wyswietlania/pomocnicze
+//----------------------------------------------------------------------------------------------------- 
+list_element* swap_list_elements(list_element* element1, list_element* element2);
+
+void print_element_data(list_element_data_type);
+
 void list_print_element_byindex(list_head* list, unsigned int position);
-
-
 void list_print_all_elements(list_head* list);
 void list_info_print(list_head* list);  //wypisuje elementy oraz rozmiar jako ostatnią liczbę
-void list_element_set_free(list_element* element); //zeruje dane elementu usuwanego z listy
- 
- 
+
+void list_create_random(list_head* head, unsigned int size);
 /******************************************************************************
 FUNKCJE KOD
 *******************************************************************************/
@@ -161,7 +184,7 @@ void list_add_element_byindex(list_head* list, list_element_data_type data, int 
     }
     else
     {
-         list_element* temp_pointer = list_return_element_byindex(list, position);
+         list_element* temp_pointer = list_return_element_ptr_byindex(list, position);
          
          if((temp_pointer) != NULL)
          {
@@ -179,6 +202,8 @@ void list_add_element_byindex(list_head* list, list_element_data_type data, int 
     }
 }
 
+/*************************************************************************************/
+
 void list_remove_element_byindex(list_head* list, unsigned int position)
 {
     if((*list) != NULL) //usuwamy tylko gdy lista ma elementy
@@ -190,7 +215,7 @@ void list_remove_element_byindex(list_head* list, unsigned int position)
         else
         {
             //Znajdujemy poprzednik usuwanego pliku (dlatego -1)
-            list_element* temp_pointer = list_return_element_byindex(list, position-1);
+            list_element* temp_pointer = list_return_element_ptr_byindex(list, position-1);
          
             if(((temp_pointer) != NULL)&&((temp_pointer->next) != NULL))
             {
@@ -210,7 +235,9 @@ void list_remove_element_byindex(list_head* list, unsigned int position)
     }   
 }
 
-list_element* list_return_element_byindex(list_head* list, unsigned int position)
+/*************************************************************************************/
+
+list_element* list_return_element_ptr_byindex(list_head* list, unsigned int position)
 {
     unsigned int count = 0;
     list_element* temp_pointer = (*list);
@@ -225,7 +252,9 @@ list_element* list_return_element_byindex(list_head* list, unsigned int position
     return temp_pointer;
 }
 
-void list_print_element_byindex(list_head* list, unsigned int position)
+/*************************************************************************************/
+
+list_element_data_type list_return_element_data_byindex(list_head* list, unsigned int position)
 {
     unsigned int count = 0;
     list_element* temp_pointer = (*list);
@@ -236,18 +265,126 @@ void list_print_element_byindex(list_head* list, unsigned int position)
         count++;
         temp_pointer = temp_pointer->next;
     }
-   
-   if(temp_pointer != NULL)
-    printf("element listy na pozycji %d ma wartość: %d \n\r",position ,temp_pointer->data);
-   else 
-    printf("element listy o indeksie %d nie istnieje, rozmiar listy: %d  \n\r",position , count);
+    
+    printf("element listy o indeksie %d ma wartość: ", position);
+    print_element_data(temp_pointer->data);
+    printf(" \n\r");
+    return temp_pointer->data;
 
 }
 
+/******************************************************************************
+OPERACJE INNE
+*******************************************************************************/
 
+void list_bubblesort(list_head* list)
+{
+    bool swap_flag = 0;     //flaga informująca o wykonaniu przemieszczenia
+    int moves = 0;          //licznik wykonanych przemieszczeń
+ 
+    if((*list) != NULL)     //nie sortujemy pustej tablicy
+    {
+        //sprawdzenie uporzadkowania na podstawie wykonanych przemieszczeń, gdy ich nie wykona lista jest gotowa
+        do                  
+        {  
+            //dwa elementy pomocnicze: wskaźnik na element obecny oraz poprzedni
+            list_element* element_ptr = (*list);
+            list_element* element_previous_ptr = (*list);
+            swap_flag = 0;
+            
+            //pojedyncze przejście przez listę
+            while((element_ptr->next) != NULL) 
+            {
+                //porównanie wartości elementów obecnego oraz poprzedniego
+                if((element_ptr->data) > (element_ptr->next->data))
+                {
+                    //osobny przypadek gdy zamieniamy pierwszy element listy
+                    if(element_ptr == (*list))
+                    {
+                        //zamieniamy elementy i zamienione podpinamy je pod head listy
+                        //przesuwamy wskażnik na kolejny element, previous zostaje na head
+                        (*list) = swap_list_elements(element_ptr, element_ptr->next);
+                        element_ptr = (*list)->next;
+                        element_previous_ptr = (*list);
+                    }
+                    else
+                    {
+                        //gdy nie zamieniamy pierwszego elementu listy, zamienione wartości podpinamy pod next poprzedniego elementu
+                        //przesuwamy ptr na nastepny
+                        element_previous_ptr->next = swap_list_elements(element_ptr, element_ptr->next); 
+                        element_ptr = element_previous_ptr->next;
+                    }
+                    swap_flag = 1;
+                    moves++;
+                }
+                else
+                {
+                    //gdy nie było zamainy inkrementujemy dwa wskaźniki
+                    element_previous_ptr = element_ptr;
+                    element_ptr = element_ptr->next; 
+                }
+            }
+                       // list_info_print(list) ;
+        }
+        while(swap_flag == 1); 
+        
+        printf("Posortowano listę wykonując: %d zamian \n\r", moves);
+    }
+    else
+    {
+        printf("nie mozna posortować pustej listy \n\r");
+    }
+}
 
+/************************************************************************************
 
-int list_count_elements(list_head* list)
+//zamianiany jest element z zadanej pozycji oraz następny
+void list_swap_elements(list_head* list, unsigned int element_pos)
+{
+    
+    if(((*list) != NULL)&& (((*list)->next) != NULL)) //lista musi mieć co najmniej dwa elementy aby wykonać zamianę
+    {
+        
+        list_element* element_pointer = list_return_element_ptr_byindex(list, element_pos);
+        
+        if(element_pointer == NULL)
+        {
+            printf("na danej pozycji nie mozna dokonać zamiany \n\r");
+        }
+        else
+        {   
+            
+            if(element_pos == 0)
+            {
+                (*list) = swap_list_elements(element_pointer, element_pointer->next);
+            }
+            else
+            {
+                list_element* temp_pointer = list_return_element_ptr_byindex(list, element_pos-1);
+                temp_pointer->next = swap_list_elements(element_pointer, element_pointer->next);
+            }
+            
+        }
+    }
+    else
+    {
+        printf("zbyt mało elementów do zamiany \n\r");
+    }   
+}
+
+************************************************************************************/
+
+list_element* swap_list_elements(list_element* element1, list_element* element2)
+{
+           element1->next = element2->next;
+           element2->next = element1;
+           
+           return element2;
+}
+
+/*************************************************************************************/
+
+unsigned int list_count_elements(list_head* list)
 {
     int count = 0;
     list_element* temp_pointer = (*list);
@@ -263,20 +400,10 @@ int list_count_elements(list_head* list)
 }
 
 
-void list_print_all_elements(list_head* list)
-{
-    list_element* temp_pointer = (*list);
-   
-    if(temp_pointer == NULL)
-     printf("lista jest pusta");
-   
-    while(temp_pointer != NULL)
-    {
-        printf("%d ", temp_pointer->data);
-        temp_pointer = temp_pointer->next;
-    }
-     
-}
+/******************************************************************************
+    WYSWIETLANIE LISTY/INNE
+*******************************************************************************/
+
 
 // format: [wartośc elementu #0] [wartośc elementu #1] ... [wartośc elementu #n-1] rozmiar: n
 void list_info_print(list_head* list) 
@@ -286,36 +413,56 @@ void list_info_print(list_head* list)
 }
 
 
+
+/*************************************************************************************/
+
+void list_print_all_elements(list_head* list)
+{
+    list_element* temp_pointer = (*list);
+   
+    if(temp_pointer == NULL)
+     printf("lista jest pusta");
+   
+    while(temp_pointer != NULL)
+    {
+        print_element_data(temp_pointer->data);
+        temp_pointer = temp_pointer->next;
+    }
+     
+}
+
+/*************************************************************************************/
+
+void print_element_data(list_element_data_type data)
+{
+    printf("%d ", data);
+}
+
+/*************************************************************************************/
+
+void list_create_random(list_head* head, unsigned int size)
+{
+    srand(time(NULL));
+    
+    for (int i = 0; i < size; i++)
+    {
+        list_add_element_as_first(head, (rand() % 100));
+    }
+	
+}
+
+/*************************************************************************************/
+
 int main()
 {
     
     list_head mylist = NULL;
-  
-    list_add_element_byindex(&mylist, 1, -1);
-    list_info_print(&mylist);
     
-    list_add_element_byindex(&mylist, 2, 0);
-    list_info_print(&mylist);
+    list_create_random(&mylist, 30);
+    list_info_print(&mylist);  
+
     
-    list_add_element_byindex(&mylist, 8, 1);
-    list_info_print(&mylist);   
-    
-    list_add_element_byindex(&mylist, 3, 2);
-    list_info_print(&mylist);   
-    
-    list_remove_element_byindex(&mylist, 0);
-    list_info_print(&mylist); 
-    
-        list_remove_element_byindex(&mylist, 0);
-    list_info_print(&mylist); 
-    
-        list_remove_element_byindex(&mylist, 0);
-    list_info_print(&mylist); 
-    
-        list_remove_element_byindex(&mylist, 0);
-    list_info_print(&mylist); 
-    
-        list_remove_element_byindex(&mylist, 0);
-    list_info_print(&mylist); 
+    list_bubblesort(&mylist);
+    list_info_print(&mylist);  
     return 0;
 }
