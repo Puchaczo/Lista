@@ -6,19 +6,21 @@
 
 typedef int list_element_data_type;
  
-//struktura pojedynczego elementu listy
+//struktura pojedynczego elementu listy dwukierunkowej
 typedef struct list_element
 {
     list_element_data_type data;
     struct list_element* next;
+    struct list_element* prev;
     
 }list_element;
  
- //struktura listy, zawiera wskażnik na pierwszy element oraz dodatkowe informacje;
+ //struktura listy, zawiera wskażnik na pierwszy element, ostatni element oraz ilość elementów;
  typedef struct list_head
  {
         list_element* head_ptr; 
-        int element_cnt;
+        list_element* tail_ptr;
+        int cnt;
         
  }list_head;
  
